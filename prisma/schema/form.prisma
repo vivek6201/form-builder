@@ -1,0 +1,94 @@
+enum QuestionType {
+    shortAns
+    longAns
+    file
+    mcq
+    checkboxes
+    date
+    time
+}
+
+enum FormStatus {
+    open
+    closed
+    draft
+}
+
+model Form {
+    id          String     @id @default(cuid())
+    title       String
+    description String?
+    sections    Section[]
+    questions   Question[]
+    settings    Setting?
+    status      FormStatus @default(draft)
+
+    // all responses will appear here 
+    responses   Responses? @relation(fields: [responsesId], references: [id])
+    responsesId String?
+    User        User       @relation(fields: [userId], references: [id])
+    userId      String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    settingId String   @unique
+}
+
+model Section {
+    id          String     @id @default(cuid())
+    title       String
+    description String?
+    questions   Question[]
+
+    form   Form   @relation(fields: [formId], references: [id])
+    formId String
+}
+
+model Question {
+    id            String       @id @default(cuid())
+    type          QuestionType
+    questionImage String?
+    options       Option[]
+    answer        String?
+    file          String?
+    required      Boolean      @default(false)
+
+    section   Section @relation(fields: [sectionId], references: [id])
+    sectionId String
+    form      Form    @relation(fields: [formId], references: [id])
+    formId    String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Option {
+    id    String @id @default(cuid())
+    title String
+
+    question   Question @relation(fields: [questionId], references: [id])
+    questionId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Setting {
+    id         String  @id @default(cuid())
+    autosave   Boolean @default(true)
+    allowEdits Boolean
+
+    form   Form   @relation(fields: [formId], references: [id])
+    formId String @unique
+
+    createdAt DateTime
+    updatedAt DateTime
+}
+
+model Responses {
+    id          String @id @default(cuid())
+    submissions Form[]
+
+    User   User?   @relation(fields: [userId], references: [id])
+    userId String?
+}
